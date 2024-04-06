@@ -1,0 +1,95 @@
+var createError = require('http-errors');
+var express = require('express');
+var path = require('path');
+var cookieParser = require('cookie-parser');
+var logger = require('morgan');
+require('dotenv').config()
+var jwt = require('jsonwebtoken');
+
+
+// let checkAuth = (req, res, next) => {
+//   try {
+//     const token = req.headers.authorization.split(' ')[1];
+//     if (!token) {
+//       res.send(JSON.stringify({
+//         status: 401,
+//         result: false,
+//         message: "Not Authorized",
+//       }));
+
+//     } else if (token) {
+//       jwt.verify(token, process.env.SECRET_KEY, (err, decoded) => {
+//         if (err) {
+//           res.send(JSON.stringify({
+//             status: 401,
+//             result: false,
+//             message: "Token is not valid"
+//           }));
+//         } else {
+//           req.uid = decoded.id;
+//           req.role = decoded.role;
+//           req.name = decoded.name;
+//           next();
+//         }
+//       });
+//     }
+//   } catch (error) {
+//     res.status(401).send(error.toString());
+//   }
+
+// }
+
+var checkAuth = require('./routes/verify/authMiddleware');
+
+var indexRouter = require('./routes/index');
+var usersRouter = require('./routes/users');
+var verifyRouter = require('./routes/verify/login');
+var registerRouter = require('./routes/verify/register');
+var productsRouter = require('./routes/products');
+var approve = require('./routes/verify/approve');
+var orders = require('./routes/orders');
+
+var app = express();
+var cors = require('cors');
+require('./db')
+
+
+app.use(cors());
+
+// view engine setup
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'jade');
+
+app.use(logger('dev'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.use('/', indexRouter);
+app.use('/users', usersRouter);
+app.use('/api/v1/login', verifyRouter);
+app.use('/api/v1/register', registerRouter);
+app.use('/api/v1/products', checkAuth, productsRouter);
+app.use('/api/v1/approve', checkAuth, approve);
+app.use('/api/v1/orders', checkAuth, orders);
+
+
+
+// catch 404 and forward to error handler
+app.use(function (req, res, next) {
+  next(createError(404));
+});
+
+// error handler
+app.use(function (err, req, res, next) {
+  // set locals, only providing error in development
+  res.locals.message = err.message;
+  res.locals.error = req.app.get('env') === 'development' ? err : {};
+
+  // render the error page
+  res.status(err.status || 500);
+  res.render('error');
+});
+
+module.exports = app;
