@@ -7,37 +7,6 @@ require('dotenv').config()
 var jwt = require('jsonwebtoken');
 
 
-// let checkAuth = (req, res, next) => {
-//   try {
-//     const token = req.headers.authorization.split(' ')[1];
-//     if (!token) {
-//       res.send(JSON.stringify({
-//         status: 401,
-//         result: false,
-//         message: "Not Authorized",
-//       }));
-
-//     } else if (token) {
-//       jwt.verify(token, process.env.SECRET_KEY, (err, decoded) => {
-//         if (err) {
-//           res.send(JSON.stringify({
-//             status: 401,
-//             result: false,
-//             message: "Token is not valid"
-//           }));
-//         } else {
-//           req.uid = decoded.id;
-//           req.role = decoded.role;
-//           req.name = decoded.name;
-//           next();
-//         }
-//       });
-//     }
-//   } catch (error) {
-//     res.status(401).send(error.toString());
-//   }
-
-// }
 
 var checkAuth = require('./routes/verify/authMiddleware');
 
@@ -70,9 +39,12 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/api/v1/login', verifyRouter);
 app.use('/api/v1/register', registerRouter);
-app.use('/api/v1/products', checkAuth, productsRouter);
+// app.use('/api/v1/products', checkAuth, productsRouter);
+app.use('/api/v1/products', checkAuth ,productsRouter);
 app.use('/api/v1/approve', checkAuth, approve);
-app.use('/api/v1/orders', checkAuth, orders);
+// app.use('/api/v1/orders', checkAuth, orders);
+app.use('/api/v1/orders', orders);
+
 
 
 

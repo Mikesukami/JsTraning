@@ -61,7 +61,7 @@ router.post('/', async function (req, res, next) {
         res.send({
             status: 200,
             message: "success",
-            data: token
+            token: token
         });
 
     } catch (error) {

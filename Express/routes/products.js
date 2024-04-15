@@ -2,6 +2,26 @@ var express = require('express');
 var router = express.Router();
 var productsSchema = require('../models/product.model');
 var ordersSchema = require('../models/order.model');
+var multer = require('multer');
+var path = require('path');
+
+const fs = require('fs');
+const dir = path.resolve(__dirname, '../public/images');
+
+if (!fs.existsSync(dir)){
+    fs.mkdirSync(dir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+    destination: function(req, file, cb) {
+        cb(null, dir);
+    },
+    filename: function(req, file, cb) {
+        cb(null, `${Date.now()}-${file.originalname}`);
+    }
+});
+
+const upload = multer({ storage: storage });
 
 //GET users listing
 router.get('/', async function(req, res, next) {
@@ -38,14 +58,16 @@ router.get("/:id", async function(req, res, next){
 });
 
   //create product
-router.post("/", async function(req, res, next){
+router.post("/", upload.single('p_image'), async function(req, res, next){
     try {
-        let { p_name, p_price, p_stock} = req.body;
+        let { p_name, p_price, p_stock } = req.body;
+        let p_image = req.file.filename; 
 
         const newProduct = new productsSchema({
             p_name,
             p_price,
-            p_stock
+            p_stock,
+            p_image
         });
 
         const product = await newProduct.save();
@@ -53,7 +75,7 @@ router.post("/", async function(req, res, next){
         res.status(201).send({
             status: 201,
             message: "Create Success.",
-            data: {_id: product._id, p_name, p_price, p_stock}
+            data: {_id: product._id, p_name, p_price, p_stock, p_image}
         });
     }
     catch(error){
@@ -65,21 +87,34 @@ router.post("/", async function(req, res, next){
 });
 
 //update product
-router.put("/:id", async function(req, res, next){
+router.put("/:id", upload.single('p_image'),async function(req, res, next){
     try{
         let { p_name, p_price, p_stock } = req.body;
+        let p_image = null;
+        if (req.file) {
+            p_image = req.file.filename;
+        }else{
+            p_image = null;
+            console.log("No image uploaded");
+        }
 
         let product = await productsSchema.findById(req.params.id);
+        
+        if (p_image === null) {
+            p_image = product.p_image;
+        }
+
         product.p_name = p_name;
         product.p_price = p_price;
         product.p_stock = p_stock;
+        product.p_image = p_image;
 
         await product.save();
 
         res.status(201).send({
             status: 201,
             message: "Update Product Success.",
-            data: {_id: product._id, p_name, p_price, p_stock}
+            data: {_id: product._id, p_name, p_price, p_stock, p_image: product.p_image}
         });
     
     } catch (error) {
