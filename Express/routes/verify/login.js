@@ -61,7 +61,8 @@ router.post('/', async function (req, res, next) {
         res.send({
             status: 200,
             message: "success",
-            token: token
+            token: token,
+            role: user.role
         });
 
     } catch (error) {
