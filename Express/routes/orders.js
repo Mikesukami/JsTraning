@@ -27,6 +27,7 @@ router.get('/', async function(req, res, next) {
     }
 });
 
+
 router.get("/:id", async function(req, res, next){
     try{
         let order = await ordersSchema.findById(req.params.id);
@@ -49,5 +50,10 @@ router.get("/:id", async function(req, res, next){
           })
     }
 });
+
+router.get("/test", async function(req, res, next){
+    console.log("test");
+});
+
 
 module.exports = router;

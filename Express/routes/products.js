@@ -274,8 +274,6 @@ router.post("/addcart", async function (req, res, next) {
         p_stock: p_stock,
       });
 
-      
-
       const cart = new cartitemsSchema({
         product_id: product_id,
         qty: qty,
@@ -306,5 +304,39 @@ router.post("/addcart", async function (req, res, next) {
     });
   }
 });
+
+// router.get("/carts", async function (req, res, next) {
+//     console.log("get cart");
+//     try {
+//       const cart = await cartitemsSchema.find({ OrderId: null });
+//       res.status(200).send({
+//         status: 200,
+//         message: "Success",
+//         data: cart
+//       });
+//     } catch (error) {
+//       console.error(error);
+//       res.status(500).send({
+//         status: 500,
+//         message: "Internal Server Error",
+//       });
+//     }
+//   }); 
+
+  router.get("/test", async function (req, res, next) {
+    try {
+      let products = await productsSchema.find({});
+      res.send({
+        status: 200,
+        message: "success",
+        data: products,
+      });
+    } catch (error) {
+      res.status(404).send({
+        status: 404,
+        message: "Client Error",
+      });
+    }
+  });
 
 module.exports = router;
