@@ -2,7 +2,7 @@ var express = require("express");
 var router = express.Router();
 var productsSchema = require("../models/product.model");
 var ordersSchema = require("../models/order.model");
-var cartitemsSchema = require("../models/cartitem.model")
+var cartitemsSchema = require("../models/cartitem.model");
 var multer = require("multer");
 var path = require("path");
 
@@ -36,7 +36,7 @@ router.get("/", async function (req, res, next) {
   } catch (error) {
     res.status(404).send({
       status: 404,
-      message: "Client Error",
+      message: "fetching product error",
     });
   }
 });
@@ -53,7 +53,7 @@ router.get("/:id", async function (req, res, next) {
   } catch (error) {
     res.status(404).send({
       status: 404,
-      message: "Client Error",
+      message: "get by id product error",
     });
   }
 });
@@ -81,7 +81,7 @@ router.post("/", upload.single("p_image"), async function (req, res, next) {
   } catch (error) {
     res.status(404).send({
       status: 404,
-      message: "Client Error",
+      message: "create product error",
     });
   }
 });
@@ -125,7 +125,7 @@ router.put("/:id", upload.single("p_image"), async function (req, res, next) {
   } catch (error) {
     res.status(404).send({
       status: 404,
-      message: "Client Error",
+      message: "update product error",
     });
   }
 });
@@ -141,7 +141,7 @@ router.delete("/:id", async function (req, res, next) {
   } catch (error) {
     res.status(404).send({
       status: 404,
-      message: "Client Error",
+      message: "delete product error",
     });
   }
 });
@@ -275,8 +275,8 @@ router.post("/addcart", async function (req, res, next) {
       });
 
       const cart = new cartitemsSchema({
-        product_id: product_id,
-        qty: qty,
+        productId: product_id,
+        Qty: qty,
         p_name: product.p_name,
         p_image: product.p_image,
         p_price: product.p_price,
@@ -305,38 +305,108 @@ router.post("/addcart", async function (req, res, next) {
   }
 });
 
-// router.get("/carts", async function (req, res, next) {
-//     console.log("get cart");
-//     try {
-//       const cart = await cartitemsSchema.find({ OrderId: null });
-//       res.status(200).send({
-//         status: 200,
-//         message: "Success",
-//         data: cart
-//       });
-//     } catch (error) {
-//       console.error(error);
-//       res.status(500).send({
-//         status: 500,
-//         message: "Internal Server Error",
-//       });
-//     }
-//   }); 
+router.delete("/emp/carts/:id", async function (req, res, next) {
+  const id = req.params.id;
+  let cart;
 
-  router.get("/test", async function (req, res, next) {
-    try {
-      let products = await productsSchema.find({});
-      res.send({
-        status: 200,
-        message: "success",
-        data: products,
-      });
-    } catch (error) {
-      res.status(404).send({
+  try {
+    let cartitem = await cartitemsSchema.findById(id);
+    if (!cartitem) {
+      return res.status(404).send({
         status: 404,
-        message: "Client Error",
+        message: "Cart item not found.",
       });
     }
-  });
+
+    let product = await productsSchema.findById(cartitem.productId);
+    if (!product) {
+      return res.status(404).send({
+        status: 404,
+        message: "Product not found.",
+      });
+    }
+
+    let stock = product.p_stock + cartitem.Qty;
+    product.p_stock = stock;
+    await product.save();
+
+    cart = await cartitemsSchema.findByIdAndDelete(id);
+
+    if (!cart) {
+      return res.status(404).send({
+        status: 404,
+        message: "Cart not found.",
+      });
+    }
+
+    return res.status(200).send({
+      status: 200,
+      message: "Delete Cart Success.",
+    });
+  } catch (error) {
+    return res.status(500).send({
+      status: 500,
+      message: "Delete Cart Failed.",
+    });
+  }
+});
+
+router.get("/emp/carts", async function (req, res, next) {
+  try {
+    const cart = await cartitemsSchema.find({ OrderId: null });
+    res.status(200).send({
+      status: 200,
+      message: "Success",
+      data: cart,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({
+      status: 500,
+      message: "Internal Server Error",
+    });
+  }
+});
+
+router.post("/confirmorder", async function (req, res, next) {
+  const uid = req.uid;
+  const username = req.username;
+  console.log(uid);
+  try {
+    const cart = await cartitemsSchema.find({ OrderId: null });
+
+    let total = 0;
+    for (const item of cart) {
+      total += item.p_total;
+    }
+
+    let ids = [];
+    for (const item of cart) {
+      ids.push(item._id);
+    }
+
+    const order = new ordersSchema({
+      user_id: uid,
+      total_price: total,
+      status: "paid",
+    });
+
+    await order.save();
+
+    await cartitemsSchema.updateMany({ OrderId: null }, { OrderId: order._id });
+
+    res.status(200).send({
+      status: 200,
+      message: "Order confirmed successfully",
+      data: order,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({
+      status: 500,
+      message: "Internal Server Error",
+    });
+  }
+});
 
 module.exports = router;
