@@ -6,8 +6,6 @@ var logger = require('morgan');
 require('dotenv').config()
 var jwt = require('jsonwebtoken');
 
-
-
 var checkAuth = require('./routes/verify/authMiddleware');
 
 var indexRouter = require('./routes/index');
@@ -17,6 +15,7 @@ var registerRouter = require('./routes/verify/register');
 var productsRouter = require('./routes/products');
 var approve = require('./routes/verify/approve');
 var orders = require('./routes/orders');
+var lab = require('./routes/labs');
 
 var app = express();
 var cors = require('cors');
@@ -44,6 +43,9 @@ app.use('/api/v1/products', checkAuth ,productsRouter);
 app.use('/api/v1/approve', checkAuth, approve);
 // app.use('/api/v1/orders', checkAuth, orders);
 app.use('/api/v1/orders', orders);
+
+//
+app.use('/api/v1/lab', lab);
 
 
 
