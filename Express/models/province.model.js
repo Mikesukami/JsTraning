@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
-const zoneSchema = new mongoose.Schema({
-    zone: { type: String, required: true } // You can add additional fields as needed
+const provinceSchema = new mongoose.Schema({
+    province_name: {type:String},
 });
 
-module.exports = mongoose.model('zone', zoneSchema);
+module.exports = mongoose.model('Province', provinceSchema);

@@ -17,14 +17,12 @@ router.post('/', async function (req, res, next) {
                 message: "User not found"
             });
         }
-
         if (!password) {
             return res.status(400).send({
                 status: 400,
                 message: "Password is required"
             });
         }
-
         // Compare the hashed password
         const passwordMatch = await bcrypt.compare(password, user.password);
         if (!passwordMatch) {
@@ -33,29 +31,12 @@ router.post('/', async function (req, res, next) {
                 message: "Password does not match"
             });
         }
-        // if (user.password !== password) {
-        //     return res.status(401).send({
-        //         status: 401,
-        //         message: "Password does not match"
-        //     });
-        // }
-
         if (user.isApproved === false) {
             return res.status(401).send({
                 status: 401,
                 message: "User not approved"
             });
         }
-
-        // let result = await bcrypt.compare(password , "user.password");
-        // console.log(result);
-        // if (!result) {
-        //     return res.status(401).send({
-        //         status: 401,
-        //         message: "Password not match"
-        //     });
-        // }
-
         let token = jwt.sign({ id: user._id, username: user.username, role: user.role }, process.env.SECRET_KEY, { expiresIn: "30m", algorithm: 'HS256' });
 
         res.send({

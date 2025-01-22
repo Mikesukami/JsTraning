@@ -1,6 +1,7 @@
 var express = require("express");
 var router = express.Router();
 var lab_schema = require("../models/labs.model");
+var province_schema = require("../models/province.model");
 
 router.get("/", async function (req, res, next) {
   try {
@@ -72,10 +73,10 @@ router.get("/test", async (req, res) => {
       .skip((page - 1) * limit);
 
     if (labs.length === 0) {
-        return res.status(404).json({
-            status: 404,
-            message: "Labs Not found.",
-        });
+      return res.status(404).json({
+        status: 404,
+        message: "Labs Not found.",
+      });
     }
 
     const total_count = await lab_schema.countDocuments(query);
@@ -104,5 +105,70 @@ router.get("/test", async (req, res) => {
     res.status(500).json({ status: 500, message: err.message });
   }
 });
+
+// router.get("/test", async (req, res) => {
+//   try {
+//     const { province, lab_code, date, page = 1, limit = 10 } = req.query;
+//     let query = {};
+
+//     if (province) query['province.province'] = { $regex: new RegExp(province, "i") };
+//     if (lab_code) query.lab_code = { $regex: new RegExp(lab_code, "i") };
+
+//     if (date) {
+//       const start_date = new Date(date);
+//       start_date.setHours(0, 0, 0, 0); // Set start of day
+//       const end_date = new Date(date);
+//       end_date.setHours(23, 59, 59, 999); // Set end of day
+//       query.create_at = { $gte: start_date, $lte: end_date };
+//     }
+
+//     const matchStage = Object.keys(query).length > 0 ? { $match: query } : { $match: {} };
+
+//     const labs = await lab_schema.aggregate([
+//       matchStage,
+//       {
+//         $lookup: {
+//           from: "provinces",
+//           localField: "province",
+//           foreignField: "_id",
+//           as: "province"
+//         }
+//       },
+//       {
+//         $unwind: { path: "$province", preserveNullAndEmptyArrays: true }
+//       },
+//       {
+//         $project: {
+//           lab_code: 1,
+//           lab_name: 1,
+//           zone: 1,
+//           province: { $ifNull: ["$province.province", ""] },
+//           create_at: { $dateToString: { format: "%d/%m/%Y", date: "$create_at" } }
+//         }
+//       },
+//       {
+//         $limit: limit * 1
+//       },
+//       {
+//         $skip: (page - 1) * limit
+//       }
+//     ]);
+
+//     const total_count = await lab_schema.countDocuments(query);
+
+//     res.status(200).json({
+//       status: 200,
+//       message: labs.length > 0 ? "Success to fetch labs data" : "Labs Not found.",
+//       current_page: parseInt(page),
+//       pages: Math.ceil(total_count / limit),
+//       current_count: labs.length,
+//       total_count: total_count,
+//       lab_count: labs.length,
+//       data: labs,
+//     });
+//   } catch (err) {
+//     res.status(500).json({ status: 500, message: err.message });
+//   }
+// });
 
 module.exports = router;

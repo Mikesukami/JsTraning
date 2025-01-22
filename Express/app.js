@@ -16,6 +16,9 @@ var productsRouter = require('./routes/products');
 var approve = require('./routes/verify/approve');
 var orders = require('./routes/orders');
 var lab = require('./routes/labs');
+var province = require('./routes/province');
+var message = require('./routes/message');
+var lineNoti = require('./routes/lineNoti');
 
 var app = express();
 var cors = require('cors');
@@ -43,9 +46,10 @@ app.use('/api/v1/products', checkAuth ,productsRouter);
 app.use('/api/v1/approve', checkAuth, approve);
 // app.use('/api/v1/orders', checkAuth, orders);
 app.use('/api/v1/orders', orders);
-
-//
+app.use('/api/v1/message', message);
 app.use('/api/v1/lab', lab);
+app.use('/api/v1/province', province);
+app.use('/api/v1/lineNotify', lineNoti);
 
 
 
